@@ -440,10 +440,15 @@ module StateMachine
         # Creates a new named scope with the given name
         def create_scope(name, scope)
           machine = self
-          owner_class.def_dataset_method(name) do |*states|
-            machine.send(:run_scope, scope, self, states)
+          # owner_class.def_dataset_method(name) do |*states|
+          #  machine.send(:run_scope, scope, self, states)
+          # end
+
+          owner_class.dataset_module do
+            define_method name do |*states|
+              machine.send(:run_scope, scope, self, states)
+            end
           end
-          
           false
         end
         
@@ -468,7 +473,7 @@ module StateMachine
         def transaction(object)
           result = nil
           object.db.transaction do
-            raise ::Sequel::Error::Rollback unless result = yield
+            raise ::Sequel::Rollback unless result = yield
           end
           result
         end
